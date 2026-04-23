@@ -150,6 +150,29 @@ final class HIDEventManager: ObservableObject {
             .store(in: &c)
         }
 
+        // If "Show on click", "Show on hover", "Show on scroll", and secondary context menu
+        // are all disabled, stop all monitors to save resources and prevent potential issues.
+        if let appState {
+            Publishers.CombineLatest4(
+                appState.settings.general.$showOnClick,
+                appState.settings.general.$showOnHover,
+                appState.settings.general.$showOnScroll,
+                appState.settings.advanced.$enableSecondaryContextMenu
+            )
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] showOnClick, showOnHover, showOnScroll, enableSecondaryContextMenu in
+                guard let self else {
+                    return
+                }
+                if showOnClick || showOnHover || showOnScroll || enableSecondaryContextMenu {
+                    startAll()
+                } else {
+                    stopAll()
+                }
+            }
+            .store(in: &c)
+        }
+
         cancellables = c
     }
 
