@@ -466,8 +466,7 @@ final class ControlItem {
             // Running this from a Task seems to improve the visual
             // responsiveness of the status item's button.
             Task {
-                let enableSecondaryContextMenu = appState?.settings.advanced.enableSecondaryContextMenu ?? true
-                if modifierFlags == .control, enableSecondaryContextMenu {
+                if modifierFlags == .control {
                     showMenu()
                     return
                 }
@@ -489,9 +488,9 @@ final class ControlItem {
                 }
             }
         case .rightMouseUp:
-            guard appState?.settings.advanced.enableSecondaryContextMenu ?? true else {
-                return
-            }
+            // Always show the Ice icon's primary menu regardless of the secondary
+            // context menu setting. That setting only suppresses the empty-space
+            // menu in HIDEventManager; the Ice icon menu must always be reachable.
             showMenu()
         default:
             return

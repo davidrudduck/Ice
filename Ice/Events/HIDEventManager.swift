@@ -157,13 +157,16 @@ final class HIDEventManager: ObservableObject {
         // If "Show on click", "Show on hover", "Show on scroll", and secondary context menu
         // are all disabled, stop all monitors to save resources and prevent potential issues.
         if let appState {
-            Publishers.CombineLatest4(
+            // Stop all monitors only when all three show modes are off.
+            // Note: enableSecondaryContextMenu is intentionally excluded — when true the
+            // right-click context menu needs monitors; when false the ⌥⌘-click settings
+            // fallback (handleOpenSettingsFallback) still requires mouseDownMonitor to run.
+            Publishers.CombineLatest3(
                 appState.settings.general.$showOnClick,
                 appState.settings.general.$showOnHover,
-                appState.settings.general.$showOnScroll,
-                appState.settings.advanced.$enableSecondaryContextMenu
+                appState.settings.general.$showOnScroll
             )
-            .map { $0 || $1 || $2 || $3 }
+            .map { $0 || $1 || $2 }
             .removeDuplicates()
             .receive(on: DispatchQueue.main)
             .sink { [weak self] anyEnabled in
