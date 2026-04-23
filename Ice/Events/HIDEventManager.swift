@@ -48,6 +48,9 @@ final class HIDEventManager: ObservableObject {
         guard let self, isEnabled, let appState, let screen = bestScreen(appState: appState) else {
             return event
         }
+        if handleOpenSettingsFallback(with: event, appState: appState, screen: screen) {
+            return event
+        }
         switch event.type {
         case .leftMouseDown:
             handleShowOnClick(appState: appState, screen: screen)
@@ -403,6 +406,26 @@ extension HIDEventManager {
                 hiddenSection.hide()
             }
         }
+    }
+
+    // MARK: Handle Open Settings Fallback
+
+    /// When secondary context menus are disabled, ⌥⌘-click in the menu bar opens Ice settings.
+    @discardableResult
+    private func handleOpenSettingsFallback(with event: NSEvent, appState: AppState, screen: NSScreen) -> Bool {
+        guard
+            !appState.settings.advanced.enableSecondaryContextMenu,
+            event.type == .leftMouseDown || event.type == .rightMouseDown,
+            isMouseInsideMenuBar(appState: appState, screen: screen)
+        else {
+            return false
+        }
+        let modifiers = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+        guard modifiers.contains([.option, .command]) else {
+            return false
+        }
+        appState.appDelegate?.openSettingsWindow()
+        return true
     }
 
     // MARK: Handle Prevent Show On Hover

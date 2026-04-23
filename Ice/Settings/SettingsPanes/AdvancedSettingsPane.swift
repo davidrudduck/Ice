@@ -96,7 +96,8 @@ struct AdvancedSettingsPane: View {
                 """
                 Right-click in an empty area of the menu bar to display a minimal \
                 version of Ice's menu. Disable this setting if you encounter conflicts \
-                with other apps.
+                with other apps like DynamicLake. When disabled, \
+                Option + Command + click in the menu bar opens Ice settings.
                 """
             )
             .padding(.trailing, 75)
