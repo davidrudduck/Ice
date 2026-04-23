@@ -352,6 +352,11 @@ extension HIDEventManager {
     // MARK: Handle Show On Hover
 
     private func handleShowOnHover(appState: AppState, screen: NSScreen) {
+        // If "Screens have separate spaces" is disabled, only process the first (main) screen.
+        if !NSScreen.screensHaveSeparateSpaces && screen != NSScreen.screens.first {
+            return
+        }
+
         // Make sure the "ShowOnHover" feature is enabled and allowed.
         guard
             appState.settings.general.showOnHover,
