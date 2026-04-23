@@ -459,8 +459,6 @@ final class ControlItem {
             return
         }
 
-        let enableSecondaryContextMenu = appState?.settings.advanced.enableSecondaryContextMenu ?? true
-
         switch event.type {
         case .leftMouseDown:
             let modifierFlags = NSEvent.modifierFlags
@@ -468,6 +466,7 @@ final class ControlItem {
             // Running this from a Task seems to improve the visual
             // responsiveness of the status item's button.
             Task {
+                let enableSecondaryContextMenu = appState?.settings.advanced.enableSecondaryContextMenu ?? true
                 if modifierFlags == .control, enableSecondaryContextMenu {
                     showMenu()
                     return
@@ -490,7 +489,7 @@ final class ControlItem {
                 }
             }
         case .rightMouseUp:
-            guard enableSecondaryContextMenu else {
+            guard appState?.settings.advanced.enableSecondaryContextMenu ?? true else {
                 return
             }
             showMenu()

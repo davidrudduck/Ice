@@ -49,6 +49,7 @@ final class HIDEventManager: ObservableObject {
             return event
         }
         if handleOpenSettingsFallback(with: event, appState: appState, screen: screen) {
+            handlePreventShowOnHover(with: event, appState: appState, screen: screen)
             return event
         }
         switch event.type {
@@ -162,12 +163,14 @@ final class HIDEventManager: ObservableObject {
                 appState.settings.general.$showOnScroll,
                 appState.settings.advanced.$enableSecondaryContextMenu
             )
+            .map { $0 || $1 || $2 || $3 }
+            .removeDuplicates()
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] showOnClick, showOnHover, showOnScroll, enableSecondaryContextMenu in
+            .sink { [weak self] anyEnabled in
                 guard let self else {
                     return
                 }
-                if showOnClick || showOnHover || showOnScroll || enableSecondaryContextMenu {
+                if anyEnabled {
                     startAll()
                 } else {
                     stopAll()
@@ -424,7 +427,7 @@ extension HIDEventManager {
         guard modifiers.contains([.option, .command]) else {
             return false
         }
-        appState.appDelegate?.openSettingsWindow()
+        NSApplication.shared.sendAction(#selector(AppDelegate.openSettingsWindow), to: nil, from: nil)
         return true
     }
 
