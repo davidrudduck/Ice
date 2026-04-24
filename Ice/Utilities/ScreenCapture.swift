@@ -11,9 +11,37 @@ enum ScreenCapture {
 
     // MARK: Permissions
 
+    /// Cached result from the most recent async SCShareableContent permission check.
+    /// `nil` until the first async check completes.
+    nonisolated(unsafe) private static var _asyncPermissionResult: Bool? = nil
+
+    /// Triggers an async SCShareableContent check and updates `_asyncPermissionResult`.
+    /// Safe to call on every timer tick; each call spawns a detached Task.
+    static func refreshPermissionsAsync() {
+        Task {
+            do {
+                _ = try await SCShareableContent.current
+                _asyncPermissionResult = true
+            } catch {
+                _asyncPermissionResult = false
+            }
+        }
+    }
+
     /// Returns a Boolean value that indicates whether the app has screen
     /// capture permissions.
     static func checkPermissions() -> Bool {
+        // Kick off an async refresh so the next call (≥1 s later via the Permission
+        // timer) picks up the latest granted state — reliable on macOS 26 where the
+        // synchronous fallbacks below reflect only the launch-time state.
+        refreshPermissionsAsync()
+
+        // Prefer the async result once it's available.
+        if let asyncResult = _asyncPermissionResult {
+            return asyncResult
+        }
+
+        // Synchronous fallbacks — accurate on earlier macOS or at first launch.
         for windowID in Bridging.getMenuBarWindowList(option: [.itemsOnly, .activeSpace]) {
             guard
                 let window = WindowInfo(windowID: windowID),

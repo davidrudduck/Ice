@@ -342,7 +342,7 @@ private struct IceBarContentView: View {
 
     @ViewBuilder
     private var content: some View {
-        if !ScreenCapture.cachedCheckPermissions() {
+        if !appState.permissions.screenRecording.hasPermission {
             HStack {
                 Text("The Ice Bar requires screen recording permissions.")
 
