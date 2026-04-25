@@ -4,7 +4,10 @@
 //
 
 import CoreGraphics
+import OSLog
 import ScreenCaptureKit
+
+private let logger = Logger(subsystem: "com.jordanbaird.Ice", category: "ScreenCapture")
 
 /// A namespace for screen capture operations.
 enum ScreenCapture {
@@ -21,8 +24,10 @@ enum ScreenCapture {
         Task {
             do {
                 _ = try await SCShareableContent.current
+                logger.debug("SCShareableContent.current succeeded → permission granted")
                 _asyncPermissionResult = true
             } catch {
+                logger.debug("SCShareableContent.current threw: \(error, privacy: .public) → permission denied")
                 _asyncPermissionResult = false
             }
         }
@@ -49,11 +54,13 @@ enum ScreenCapture {
             else {
                 continue
             }
-            return window.title != nil
+            let titleResult = window.title != nil
+            logger.debug("window title check → \(titleResult, privacy: .public) (title: \(window.title ?? "<nil>", privacy: .public))")
+            return titleResult
         }
-        // CGPreflightScreenCaptureAccess() only returns an initial value,
-        // but we can use it as a fallback.
-        return CGPreflightScreenCaptureAccess()
+        let preflightResult = CGPreflightScreenCaptureAccess()
+        logger.debug("CGPreflightScreenCaptureAccess → \(preflightResult, privacy: .public)")
+        return preflightResult
     }
 
     /// Returns a Boolean value that indicates whether the app has screen
